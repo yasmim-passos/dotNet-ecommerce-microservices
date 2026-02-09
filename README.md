@@ -283,17 +283,6 @@ public class ProductTests
 
 ---
 
-## 🎤 Elevator Pitch
-
-> "Desenvolvi uma plataforma de e-commerce usando **microsserviços em .NET Core 8** com 
-> **Domain-Driven Design e Clean Architecture**. Implementei **Aggregate Roots, Value Objects 
-> e Domain Events** no serviço de Catalog, usando **PostgreSQL com Entity Framework Core**. 
-> A infraestrutura está **containerizada com Docker** e preparada para **RabbitMQ** e 
-> **Kubernetes**. O código segue **SOLID principles** com separação clara de responsabilidades 
-> em 4 camadas."
-
----
-
 ## 🚀 Próximos Passos
 
 - [ ] Implementar Orders Service (Saga Pattern)
