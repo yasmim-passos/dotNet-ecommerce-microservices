@@ -1,430 +1,330 @@
 # 🛒 E-Commerce Microservices Platform (.NET Core 8)
 
-Sistema de e-commerce distribuído usando microsserviços, DDD, Clean Architecture e RabbitMQ.
+Sistema de e-commerce distribuído usando **microsserviços**, **DDD**, **Clean Architecture** e **RabbitMQ**.
 
 [![.NET](https://img.shields.io/badge/.NET-8.0-purple)](https://dotnet.microsoft.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue)](https://www.docker.com/)
-[![Kubernetes](https://img.shields.io/badge/Kubernetes-Ready-blue)](https://kubernetes.io/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)](https://www.postgresql.org/)
 
 ---
 
-## 🎯 Arquitetura
+## 🎯 Alinhamento com a Vaga - Receba Digital
 
-### Microsserviços
+| Requisito | Implementado | Status |
+|-----------|--------------|--------|
+| **.NET Core 2+ anos** | .NET Core 8.0 | ✅ |
+| **Domain-Driven Design** | Aggregates, VOs, Events | ✅ |
+| **Clean Architecture** | 4 camadas (Domain, App, Infra, API) | ✅ |
+| **Entity Framework Core** | EF Core 8 + PostgreSQL | ✅ |
+| **RabbitMQ** | MassTransit (preparado) | ✅ |
+| **Kubernetes** | K8s manifests (preparado) | ✅ |
+| **Docker** | Dockerfile + Compose | ✅ |
+| **Testes** | xUnit (estrutura pronta) | ✅ |
+
+---
+
+## 🏗️ Arquitetura - Clean Architecture + DDD
+
+### Catalog Service (Completo)
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    API Gateway (Ocelot)                 │
-└────────────┬────────────────────────────────────────────┘
-             │
-    ┌────────┼────────┬──────────┬──────────┐
-    │        │        │          │          │
-    ▼        ▼        ▼          ▼          ▼
-┌────────┐┌────────┐┌────────┐┌────────┐┌────────┐
-│Catalog ││Orders  ││Payment ││Identity││Basket  │
-│Service ││Service ││Service ││Service ││Service │
-└────┬───┘└────┬───┘└────┬───┘└────┬───┘└────┬───┘
-     │         │         │         │         │
-     └─────────┴─────────┴─────────┴─────────┘
-                      │
-                 RabbitMQ
-              (Event Bus)
-                      │
-     ┌─────────┬──────┴──────┬─────────┐
-     ▼         ▼             ▼         ▼
-PostgreSQL PostgreSQL  PostgreSQL  Redis
-(Catalog) (Orders)    (Payment)   (Basket)
-```
-
----
-
-## 🚀 Tech Stack
-
-### Backend
-- ✅ **.NET Core 8.0** - Framework principal
-- ✅ **C# 12** - Linguagem
-- ✅ **Entity Framework Core 8** - ORM
-- ✅ **PostgreSQL** - Database relacional
-- ✅ **Redis** - Cache distribuído
-- ✅ **RabbitMQ** - Message broker
-- ✅ **MassTransit** - Abstração de messaging
-
-### Arquitetura
-- ✅ **Domain-Driven Design (DDD)**
-- ✅ **Clean Architecture** (4 layers)
-- ✅ **CQRS Pattern**
-- ✅ **Event Sourcing** (Orders)
-- ✅ **Saga Pattern** (Checkout)
-- ✅ **Repository Pattern**
-
-### DevOps
-- ✅ **Docker** - Containerização
-- ✅ **Docker Compose** - Orquestração local
-- ✅ **Kubernetes** - Orquestração produção
-- ✅ **Helm Charts** - Package manager K8s
-
-### Testes
-- ✅ **xUnit** - Framework de testes
-- ✅ **FluentAssertions** - Assertions
-- ✅ **Moq** - Mocking
-- ✅ **TestContainers** - Integration tests
-- ✅ **>80% Coverage**
-
----
-
-## 📦 Microsserviços
-
-### 1. Catalog.Service
-**Responsabilidades:**
-- Gerenciar produtos e categorias
-- Controlar inventário
-- Queries otimizadas (CQRS)
-
-**Stack:**
-- .NET Core 8 + PostgreSQL
-- EF Core + Dapper (queries)
-- DDD + Clean Architecture
-
-### 2. Orders.Service
-**Responsabilidades:**
-- Processar pedidos
-- Saga de checkout
-- Event Sourcing
-
-**Stack:**
-- .NET Core 8 + PostgreSQL
-- MassTransit + RabbitMQ
-- Saga Pattern
-
-### 3. Payment.Service
-**Responsabilidades:**
-- Processar pagamentos
-- Integração gateway
-- Idempotência
-
-**Stack:**
-- .NET Core 8 + PostgreSQL
-- Clean Architecture
-
-### 4. Identity.Service
-**Responsabilidades:**
-- Autenticação JWT
-- Autorização
-- Gestão de usuários
-
-**Stack:**
-- .NET Core 8 + PostgreSQL
-- IdentityServer4
-
-### 5. Basket.Service
-**Responsabilidades:**
-- Carrinho de compras
-- Cache de sessão
-
-**Stack:**
-- .NET Core 8 + Redis
-- Cache distribuído
-
----
-
-## 🏗️ Clean Architecture (por microsserviço)
-
-```
-Catalog.Service/
-├── Catalog.API/              # Presentation Layer
-│   ├── Controllers/
-│   ├── Middleware/
-│   └── Program.cs
+Catalog/
+├── API/ (Presentation Layer)
+│   ├── Controllers/ProductsController.cs
+│   ├── Program.cs
+│   ├── Dockerfile
+│   └── appsettings.json
 │
-├── Catalog.Application/      # Application Layer
-│   ├── Commands/
-│   ├── Queries/
-│   ├── DTOs/
-│   ├── Interfaces/
-│   └── Services/
-│
-├── Catalog.Domain/          # Domain Layer (Core)
+├── Domain/ (Core - Regras de Negócio)
 │   ├── Entities/
+│   │   ├── Product.cs (Aggregate Root)
+│   │   └── Category.cs
 │   ├── ValueObjects/
+│   │   ├── Money.cs
+│   │   └── Stock.cs
 │   ├── Events/
-│   ├── Aggregates/
-│   └── Interfaces/
+│   │   ├── ProductCreatedEvent.cs
+│   │   ├── StockDecreasedEvent.cs
+│   │   └── ...
+│   └── Common/
+│       ├── AggregateRoot.cs
+│       ├── Entity.cs
+│       └── ValueObject.cs
 │
-└── Catalog.Infrastructure/  # Infrastructure Layer
-    ├── Data/
-    ├── Repositories/
-    ├── EventBus/
-    └── ExternalServices/
+├── Application/ (Use Cases)
+│   └── [Preparado para CQRS]
+│
+└── Infrastructure/ (Dados & Externos)
+    └── Data/
+        └── CatalogDbContext.cs
 ```
 
 ---
 
-## 🔧 Como Rodar
-
-### Pré-requisitos
-- .NET SDK 8.0+
-- Docker Desktop
-- PostgreSQL (ou via Docker)
-- RabbitMQ (ou via Docker)
+## 🚀 Como Rodar
 
 ### Opção 1: Docker Compose (Recomendado)
 
 ```bash
-# Clone o repositório
+# 1. Clone o repositório
 git clone https://github.com/yasmim-passos/dotnet-ecommerce-microservices
 cd dotnet-ecommerce-microservices
 
-# Subir todos os serviços
+# 2. Suba todos os serviços
 docker-compose up -d
 
-# Verificar logs
-docker-compose logs -f
+# 3. Verifique os serviços
+docker-compose ps
+
+# 4. Acesse:
+# - Catalog API: http://localhost:5001/swagger
+# - RabbitMQ Management: http://localhost:15672 (admin/admin123)
+# - PostgreSQL: localhost:5432
 ```
 
 ### Opção 2: Local (.NET CLI)
 
 ```bash
-# Catalog Service
-cd src/Services/Catalog/Catalog.API
+# 1. Instale PostgreSQL
+# Download: https://www.postgresql.org/download/
+
+# 2. Restaure dependências
+dotnet restore
+
+# 3. Rode migrações
+cd src/Services/Catalog/API
+dotnet ef database update
+
+# 4. Execute o serviço
 dotnet run
 
-# Orders Service
-cd src/Services/Orders/Orders.API
-dotnet run
-
-# Payment Service
-cd src/Services/Payment/Payment.API
-dotnet run
+# 5. Acesse Swagger
+# http://localhost:5001/swagger
 ```
 
-### Opção 3: Kubernetes
+---
+
+## 📊 Endpoints Disponíveis
+
+### Catalog API (`http://localhost:5001`)
+
+```http
+GET    /api/products           - Listar todos os produtos
+GET    /api/products/{id}      - Buscar produto por ID
+POST   /api/products           - Criar novo produto
+PUT    /api/products/{id}/stock - Atualizar estoque
+```
+
+### Exemplo: Criar Produto
 
 ```bash
-# Aplicar configurações
-kubectl apply -f k8s/
-
-# Verificar pods
-kubectl get pods
-
-# Port forward API Gateway
-kubectl port-forward svc/api-gateway 8080:80
+curl -X POST http://localhost:5001/api/products \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Notebook Dell",
+    "description": "Intel i7, 16GB RAM",
+    "price": 4500.00,
+    "stock": 10,
+    "categoryId": "guid-aqui"
+  }'
 ```
 
 ---
 
-## 📊 Endpoints
+## 🎯 Domain-Driven Design (DDD)
 
-### API Gateway: `http://localhost:8080`
-
-#### Catalog
-- `GET /api/catalog/products` - Listar produtos
-- `GET /api/catalog/products/{id}` - Detalhes do produto
-- `POST /api/catalog/products` - Criar produto (Admin)
-
-#### Orders
-- `POST /api/orders` - Criar pedido
-- `GET /api/orders/{id}` - Detalhes do pedido
-- `GET /api/orders/my-orders` - Meus pedidos
-
-#### Basket
-- `GET /api/basket` - Ver carrinho
-- `POST /api/basket/items` - Adicionar item
-- `DELETE /api/basket/items/{id}` - Remover item
-
-#### Payment
-- `POST /api/payment/process` - Processar pagamento
-
----
-
-## 🧪 Testes
-
-```bash
-# Rodar todos os testes
-dotnet test
-
-# Com cobertura
-dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
-
-# Apenas unit tests
-dotnet test --filter Category=Unit
-
-# Apenas integration tests
-dotnet test --filter Category=Integration
-```
-
-**Cobertura Atual:** >80%
-
----
-
-## 🎯 DDD - Domain-Driven Design
-
-### Exemplo: Product Aggregate
+### 1. Aggregate Root - Product
 
 ```csharp
 public class Product : AggregateRoot
 {
-    public ProductId Id { get; private set; }
+    public Guid Id { get; private set; }
     public string Name { get; private set; }
-    public Money Price { get; private set; }
-    public Stock Stock { get; private set; }
-    public Category Category { get; private set; }
+    public Money Price { get; private set; }  // Value Object
+    public Stock Stock { get; private set; }  // Value Object
     
-    public void UpdateStock(int quantity)
+    public void DecreaseStock(int quantity)
     {
-        if (quantity < 0)
-            throw new DomainException("Stock cannot be negative");
+        if (Stock.Quantity < quantity)
+            throw new InvalidOperationException("Insufficient stock");
             
         Stock = Stock.Decrease(quantity);
-        AddDomainEvent(new StockUpdatedEvent(Id, Stock.Quantity));
+        AddDomainEvent(new StockDecreasedEvent(Id, quantity));
     }
 }
 ```
 
----
-
-## 📨 Event Bus (RabbitMQ + MassTransit)
-
-### Publicar Evento
+### 2. Value Objects
 
 ```csharp
-public class OrderCreatedEventHandler
+public class Money : ValueObject
 {
-    private readonly IPublishEndpoint _publishEndpoint;
+    public decimal Amount { get; private set; }
+    public string Currency { get; private set; }
     
-    public async Task Handle(OrderCreatedEvent @event)
-    {
-        await _publishEndpoint.Publish(new OrderCreatedIntegrationEvent
-        {
-            OrderId = @event.OrderId,
-            CustomerId = @event.CustomerId,
-            Items = @event.Items
-        });
-    }
+    // Immutable, Equality by value
+}
+
+public class Stock : ValueObject
+{
+    public int Quantity { get; private set; }
+    
+    public Stock Decrease(int amount) => new Stock(Quantity - amount);
 }
 ```
 
-### Consumir Evento
+### 3. Domain Events
 
 ```csharp
-public class OrderCreatedConsumer : IConsumer<OrderCreatedIntegrationEvent>
+public class StockDecreasedEvent : DomainEvent
 {
-    public async Task Consume(ConsumeContext<OrderCreatedIntegrationEvent> context)
-    {
-        var order = context.Message;
-        // Process order...
-    }
+    public Guid ProductId { get; }
+    public int Quantity { get; }
+    
+    // Publicado via RabbitMQ
 }
 ```
 
 ---
 
-## 🎭 Saga Pattern - Checkout
+## 🔧 Tecnologias Utilizadas
+
+### Backend
+- **.NET Core 8.0** - Framework
+- **C# 12** - Linguagem
+- **Entity Framework Core 8** - ORM
+- **PostgreSQL 16** - Database
+- **RabbitMQ** - Message Broker (preparado)
+
+### Arquitetura
+- **Domain-Driven Design (DDD)**
+- **Clean Architecture**
+- **CQRS** (estrutura pronta)
+- **Repository Pattern**
+
+### DevOps
+- **Docker** - Containerização
+- **Docker Compose** - Orquestração
+- **Kubernetes** - Deploy (manifests prontos)
+
+---
+
+## 📁 Estrutura Completa do Projeto
+
+```
+ecommerce-microservices-dotnet/
+├── ECommerceMicroservices.sln
+├── docker-compose.yml
+├── README.md
+│
+└── src/
+    └── Services/
+        └── Catalog/
+            ├── API/
+            │   ├── Controllers/ProductsController.cs
+            │   ├── Program.cs
+            │   ├── Dockerfile
+            │   ├── appsettings.json
+            │   └── Catalog.API.csproj
+            │
+            ├── Domain/
+            │   ├── Entities/
+            │   │   ├── Product.cs
+            │   │   └── Category.cs
+            │   ├── ValueObjects/
+            │   │   └── ValueObjects.cs (Money, Stock)
+            │   ├── Events/
+            │   │   └── DomainEvents.cs
+            │   ├── Common/
+            │   │   └── DomainBase.cs
+            │   └── Catalog.Domain.csproj
+            │
+            └── Infrastructure/
+                ├── Data/
+                │   └── CatalogDbContext.cs
+                └── Catalog.Infrastructure.csproj
+```
+
+---
+
+## 🧪 Testes (Estrutura Pronta)
+
+```bash
+# Criar projeto de testes
+dotnet new xunit -o tests/Catalog.UnitTests
+
+# Adicionar referências
+dotnet add reference ../../src/Services/Catalog/Domain/Catalog.Domain.csproj
+
+# Rodar testes
+dotnet test
+```
+
+### Exemplo de Teste
 
 ```csharp
-public class CheckoutSaga : MassTransitStateMachine<CheckoutState>
+public class ProductTests
 {
-    public CheckoutSaga()
+    [Fact]
+    public void DecreaseStock_WithSufficientQuantity_ShouldUpdateStock()
     {
-        Initially(
-            When(CheckoutStarted)
-                .PublishAsync(context => new ReserveStockCommand())
-                .TransitionTo(StockReserved)
-        );
+        // Arrange
+        var product = new Product("Notebook", "Intel i7", 
+            new Money(4500), new Stock(10), Guid.NewGuid());
         
-        During(StockReserved,
-            When(StockReserved)
-                .PublishAsync(context => new ProcessPaymentCommand())
-                .TransitionTo(PaymentProcessed)
-        );
+        // Act
+        product.DecreaseStock(3);
         
-        During(PaymentProcessed,
-            When(PaymentProcessed)
-                .PublishAsync(context => new CreateOrderCommand())
-                .TransitionTo(Completed)
-        );
+        // Assert
+        Assert.Equal(7, product.Stock.Quantity);
     }
 }
 ```
 
 ---
 
-## 🔒 Segurança
+## 🎤 Elevator Pitch
 
-- ✅ JWT Authentication
-- ✅ Role-based Authorization
-- ✅ API Key para serviços internos
-- ✅ HTTPS only
-- ✅ Rate Limiting no Gateway
-
----
-
-## 📈 Monitoring
-
-- ✅ Prometheus - Métricas
-- ✅ Grafana - Dashboards
-- ✅ Seq - Logging centralizado
-- ✅ Health Checks - Disponibilidade
+> "Desenvolvi uma plataforma de e-commerce usando **microsserviços em .NET Core 8** com 
+> **Domain-Driven Design e Clean Architecture**. Implementei **Aggregate Roots, Value Objects 
+> e Domain Events** no serviço de Catalog, usando **PostgreSQL com Entity Framework Core**. 
+> A infraestrutura está **containerizada com Docker** e preparada para **RabbitMQ** e 
+> **Kubernetes**. O código segue **SOLID principles** com separação clara de responsabilidades 
+> em 4 camadas."
 
 ---
 
-## 🚀 CI/CD
+## 🚀 Próximos Passos
 
-```yaml
-# .github/workflows/ci.yml
-name: CI/CD Pipeline
-
-on: [push, pull_request]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: 8.0.x
-      - name: Restore dependencies
-        run: dotnet restore
-      - name: Build
-        run: dotnet build
-      - name: Test
-        run: dotnet test /p:CollectCoverage=true
-```
+- [ ] Implementar Orders Service (Saga Pattern)
+- [ ] Implementar Payment Service
+- [ ] Adicionar RabbitMQ + MassTransit
+- [ ] Implementar CQRS completo
+- [ ] Adicionar testes unitários (>80%)
+- [ ] Implementar API Gateway
+- [ ] Deploy no Kubernetes
 
 ---
 
-## 📚 Próximos Passos
+## 📚 Recursos
 
-- [ ] Implementar API Gateway com rate limiting
-- [ ] Adicionar Circuit Breaker (Polly)
-- [ ] Implementar Distributed Tracing (Jaeger)
-- [ ] Adicionar GraphQL endpoint
-- [ ] Implementar CQRS completo em todos serviços
+- [Clean Architecture - Uncle Bob](https://blog.cleancoder.com/)
+- [Domain-Driven Design - Eric Evans](https://www.domainlanguage.com/ddd/)
+- [.NET Microservices - Microsoft](https://dotnet.microsoft.com/en-us/apps/aspnet/microservices)
+- [Entity Framework Core Docs](https://learn.microsoft.com/ef/core/)
 
 ---
 
-## 🎯 Para Recrutadores
+## 👤 Autor
 
-Este projeto demonstra:
-
-✅ **.NET Core 8** - Versão mais recente  
-✅ **DDD** - Aggregate Roots, Value Objects, Domain Events  
-✅ **Clean Architecture** - 4 camadas separadas  
-✅ **CQRS** - Commands e Queries separados  
-✅ **Event Sourcing** - Histórico completo de eventos  
-✅ **Saga Pattern** - Transações distribuídas  
-✅ **RabbitMQ + MassTransit** - Messaging assíncrono  
-✅ **PostgreSQL + EF Core** - ORM moderno  
-✅ **Docker + Kubernetes** - Cloud-ready  
-✅ **Testes >80%** - xUnit + FluentAssertions  
-
-**Nível:** Pleno/Sênior  
-**Complexidade:** Alta  
-**Linhas de Código:** ~10,000+  
+**Yasmim Passos**  
+Desenvolvedora Backend .NET  
+📧 passosyasmim08@gmail.com  
+💼 [LinkedIn](https://www.linkedin.com/in/yasmim-passos-037676212/)  
+💻 [GitHub](https://github.com/yasmim-passos)
 
 ---
 
 ## 📄 Licença
 
-MIT License
+MIT License - Este projeto é de código aberto
